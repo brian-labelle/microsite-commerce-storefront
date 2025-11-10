@@ -66,19 +66,10 @@ export function cloneOrUpdateBoilerplate() {
     const latestTag = getLatestBoilerplateTag(boilerplatePath);
     console.log(`  Using boilerplate release: ${latestTag}`);
 
-    // Clean working directory before checkout (discard uncommitted changes from npm install)
-    try {
-        execFileSync('git', ['reset', '--hard'], { cwd: boilerplatePath, stdio: 'pipe' });
-    } catch (error) {
-        console.warn(`  ⚠️  Could not reset working directory: ${error.message}`);
-    }
-
     try {
         execFileSync('git', ['checkout', latestTag], { cwd: boilerplatePath, stdio: 'pipe' });
-        console.log(`  ✓ Checked out ${latestTag}`);
     } catch (error) {
         console.warn(`  ⚠️  Could not checkout ${latestTag}, staying on current branch`);
-        console.warn(`     Reason: ${error.message}`);
     }
 
     console.log(`  Installing boilerplate dependencies...`);
@@ -146,20 +137,6 @@ export function cloneDropinAtVersion(repoName, repoConfig, version) {
             }
         }
     } else {
-        // Check if we're already at the correct version
-        try {
-            const currentRef = execFileSync('git', ['describe', '--tags', '--exact-match'],
-                { cwd: dropinPath, encoding: 'utf8', stdio: 'pipe' }).trim();
-            if (currentRef === tag || currentRef === cleanVersion) {
-                console.log(`  Already at ${currentRef}`);
-                actualVersion = currentRef;
-                isExactMatch = true;
-                return { path: dropinPath, actualVersion, isExactMatch };
-            }
-        } catch {
-            // Not at an exact tag, continue with checkout
-        }
-
         console.log(`  Checking out ${tag}...`);
         try {
             // First fetch all tags
